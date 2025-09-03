@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ujian Online Retro - SiLungguh</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDF6E3; /* Solarized Light Base */
+            color: #657B83; /* Solarized Light Text */
+        }
+        .font-bungee {
+            font-family: 'Bungee', cursive;
+        }
+        .retro-card {
+            background-color: #EEE8D5; /* Solarized Light Base02 */
+            border: 4px solid #073642; /* Solarized Base03 */
+            box-shadow: 8px 8px 0px #073642;
+            transition: all 0.2s ease-in-out;
+        }
+        .retro-button {
+            background-color: #268BD2; /* Solarized Blue */
+            border: 3px solid #073642;
+            color: #FDF6E3;
+            box-shadow: 5px 5px 0px #073642;
+            transition: all 0.2s ease-in-out;
+            font-weight: 600;
+        }
+        .retro-button:hover:not(:disabled) {
+            transform: translate(2px, 2px);
+            box-shadow: 3px 3px 0px #073642;
+        }
+         .retro-button:disabled {
+            background-color: #93A1A1; /* Solarized Base1 */
+            cursor: not-allowed;
+            opacity: 0.7;
+            box-shadow: none;
+        }
+        .retro-input, .retro-select, .retro-textarea {
+            background-color: #FDF6E3;
+            border: 3px solid #073642;
+            color: #586E75; /* Solarized Base01 */
+            box-shadow: inset 3px 3px 0px #cbccc6;
+        }
+        .retro-input:focus, .retro-select:focus, .retro-textarea:focus {
+            outline: none;
+            box-shadow: inset 3px 3px 0px #cbccc6, 0 0 0 3px #268BD2;
+        }
+        .loader {
+            border: 8px solid #93A1A1; /* Solarized Base1 */
+            border-top: 8px solid #268BD2; /* Solarized Blue */
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Responsive Styles */
+        @media (max-width: 640px) {
+            .retro-card {
+                box-shadow: 6px 6px 0px #073642;
+            }
+            .retro-button {
+                box-shadow: 4px 4px 0px #073642;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div id="app" class="w-full max-w-4xl mx-auto">
+
+        <!-- Student Login Screen (Default) -->
+        <div id="student-login-screen" class="retro-card p-6 md:p-10 relative">
+             <div class="text-center mb-8">
+                <img id="school-logo" src="" alt="Logo Sekolah" class="mx-auto h-20 mb-4 hidden">
+                <h1 id="school-name" class="font-bungee text-3xl sm:text-4xl text-center text-[#D33682] tracking-wider mb-2">Ujian Online</h1>
+                <h2 id="school-subtitle" class="text-xl text-center font-semibold text-[#073642]">SiLungguh ("Dengan SiLungguh, Ujian Jadi Lebih Mudah.")</h2>
+             </div>
+             
+             <div id="student-loader" class="flex justify-center items-center h-40"><div class="loader"></div></div>
+             
+             <div id="student-form-container">
+                <div class="mb-4">
+                    <label for="student-class-select" class="block font-bold mb-2">PILIH KELAS</label>
+                    <select id="student-class-select" class="retro-select w-full p-3"></select>
+                </div>
+                <div class="mb-6">
+                    <label for="student-name-select" class="block font-bold mb-2">PILIH NAMA</label>
+                    <select id="student-name-select" class="retro-select w-full p-3" disabled></select>
+                </div>
+                 <div class="mb-6">
+                    <label for="exam-list" class="block font-bold mb-2">PILIH UJIAN</label>
+                    <select id="exam-list" class="retro-select w-full p-3"></select>
+                </div>
+                <div id="student-login-error" class="text-red-500 mb-4 text-center font-semibold"></div>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button id="start-exam" class="retro-button w-full sm:flex-1 py-3 text-lg">Mulai Ujian</button>
+                </div>
+             </div>
+
+             <div class="mt-8 text-center border-t-2 border-[#93A1A1] pt-4">
+                <p id="teacher-name" class="text-sm text-[#93A1A1] mb-4">Guru Mapel: Bapak Ari Wijaya</p>
+                <div class="flex justify-center items-center gap-6">
+                    <button id="show-admin-login" class="text-sm text-[#268BD2] hover:underline bg-transparent border-none">Login Admin</button>
+                    <button id="show-config" class="text-sm text-[#CB4B16] hover:underline bg-transparent border-none">Login Konfigurasi</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Config Screen -->
+        <div id="config-screen" class="hidden retro-card p-6 md:p-10">
+            <h2 class="font-bungee text-2xl md:text-3xl text-center text-[#CB4B16] mb-6">Konfigurasi Aplikasi</h2>
+             <div id="config-login">
+                <div class="mb-6">
+                    <label for="config-password" class="block font-bold mb-2">PASSWORD KONFIGURASI</label>
+                    <input type="password" id="config-password" class="retro-input w-full p-3">
+                </div>
+                <div id="config-login-error" class="text-red-500 mb-4 text-center font-semibold"></div>
+                <button id="config-login-btn" class="retro-button w-full bg-[#859900] py-3 text-lg">Buka Konfigurasi</button>
+                <button class="back-button retro-button w-full bg-[#DC322F] px-6 py-3 mt-4">Kembali</button>
+            </div>
+            
+            <div id="config-form" class="hidden space-y-6">
+                <!-- Section 1: Kustomisasi Tampilan & API -->
+                <div>
+                    <h3 class="font-bungee text-lg text-[#073642] border-b-2 border-[#073642] pb-1 mb-3">Kustomisasi Tampilan & API</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div><label for="config-school-name" class="block font-bold mb-1">Nama Sekolah</label><input type="text" id="config-school-name" class="retro-input w-full p-2"></div>
+                        <div><label for="config-school-logo" class="block font-bold mb-1">URL Logo Sekolah</label><input type="text" id="config-school-logo" class="retro-input w-full p-2"></div>
+                        <div><label for="config-teacher-name" class="block font-bold mb-1">Nama Guru</label><input type="text" id="config-teacher-name" class="retro-input w-full p-2"></div>
+                        <div class="md:col-span-2"><label for="config-api-key" class="block font-bold mb-1">Gemini API Key</label><input type="password" id="config-api-key" class="retro-input w-full p-2"></div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Default Ujian -->
+                <div>
+                    <h3 class="font-bungee text-lg text-[#073642] border-b-2 border-[#073642] pb-1 mb-3">Default Pengaturan Ujian</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div><label for="config-mapel" class="block font-bold mb-1">Nama Mapel</label><input type="text" id="config-mapel" class="retro-input w-full p-2"></div>
+                        <div><label for="config-kelas" class="block font-bold mb-1">Kelas</label><input type="text" id="config-kelas" class="retro-input w-full p-2"></div>
+                        <div><label for="config-jumlah-soal" class="block font-bold mb-1">Jumlah Soal</label><input type="number" id="config-jumlah-soal" class="retro-input w-full p-2"></div>
+                        <div><label for="config-jumlah-jawaban" class="block font-bold mb-1">Jumlah Pilihan Jawaban</label><input type="number" id="config-jumlah-jawaban" class="retro-input w-full p-2"></div>
+                        <div><label for="config-poin" class="block font-bold mb-1">Poin per Soal</label><input type="number" id="config-poin" class="retro-input w-full p-2"></div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Koneksi Spreadsheet -->
+                <div>
+                    <h3 class="font-bungee text-lg text-[#073642] border-b-2 border-[#073642] pb-1 mb-3">Setup Backend (Google Sheets)</h3>
+                    <p class="text-sm mb-3">Ikuti 3 langkah berikut untuk menghubungkan aplikasi ke database Google Sheet Anda.</p>
+                    <div class="space-y-4">
+                        <div>
+                            <p class="font-bold">LANGKAH 1: Buat Salinan Template Spreadsheet</p>
+                            <a href="https://docs.google.com/spreadsheets/d/1a_N_2PLy83_a0S-qA08fYz-Gsv_U9J8b_3q-D5X_Y0c/copy" target="_blank" class="retro-button text-sm py-1 px-3 inline-block mt-1">Salin Template Database</a>
+                        </div>
+                        <div>
+                             <p class="font-bold">LANGKAH 2: Salin Kode Script di Bawah & Deploy</p>
+                            <div class="relative"><textarea id="config-code-gs" class="retro-textarea w-full p-2 h-40 text-xs" readonly></textarea><button id="copy-code-btn" class="absolute top-2 right-2 retro-button text-xs p-1">Salin</button></div>
+                            <p class="text-xs mt-1">Tempel kode ini ke dalam menu `Extensions > Apps Script` di spreadsheet Anda, lalu `Deploy > New Deployment` sebagai Web App dengan akses `Anyone`.</p>
+                        </div>
+                        <div>
+                             <label for="config-script-url" class="block font-bold mb-1">LANGKAH 3: Tempel URL Web App Hasil Deploy di Sini</label>
+                            <input type="text" id="config-script-url" class="retro-input w-full p-2">
+                        </div>
+                    </div>
+                </div>
+
+                 <p id="config-save-status" class="text-center font-semibold my-4"></p>
+                 <button id="save-config-btn" class="retro-button w-full bg-[#859900] py-3 text-lg">Simpan Konfigurasi</button>
+                 <button class="back-button retro-button w-full bg-[#DC322F] px-6 py-3 mt-2">Tutup Konfigurasi</button>
+            </div>
+        </div>
+
+        <!-- Admin Login -->
+        <div id="admin-login-screen" class="hidden retro-card p-6 md:p-10">
+            <h2 class="font-bungee text-2xl md:text-3xl text-center text-[#859900] mb-6">Login Admin</h2>
+            <div class="mb-6">
+                <label for="admin-password" class="block font-bold mb-2">PASSWORD</label>
+                <input type="password" id="admin-password" class="retro-input w-full p-3">
+            </div>
+            <div id="admin-login-error" class="text-red-500 mb-4 text-center font-semibold"></div>
+            <div class="flex flex-col sm:flex-row gap-4">
+                <button id="admin-login-btn" class="retro-button w-full sm:flex-1 py-3 text-lg bg-[#859900]">Login</button>
+                <button class="back-button retro-button w-full sm:w-auto bg-[#DC322F] px-6 py-3">Kembali</button>
+            </div>
+        </div>
+
+        <!-- Admin Panel -->
+        <div id="admin-panel" class="hidden retro-card p-6 md:p-10">
+            <h2 class="font-bungee text-2xl md:text-3xl text-center text-[#859900] mb-6">Panel Admin: Buat Ujian Baru</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="mapel" class="block font-bold mb-2">Mata Pelajaran</label>
+                    <input type="text" id="mapel" class="retro-input w-full p-2">
+                </div>
+                <div>
+                    <label for="kelas" class="block font-bold mb-2">Untuk Kelas</label>
+                    <input type="text" id="kelas" class="retro-input w-full p-2">
+                </div>
+                <div>
+                    <label for="poin" class="block font-bold mb-2">Poin per Soal</label>
+                    <input type="number" id="poin" class="retro-input w-full p-2">
+                </div>
+                <div>
+                    <label for="jumlah-soal" class="block font-bold mb-2">Jumlah Soal</label>
+                    <input type="number" id="jumlah-soal" class="retro-input w-full p-2">
+                </div>
+                 <div class="md:col-span-2">
+                    <label for="jenis-soal" class="block font-bold mb-2">Jenis Soal</label>
+                    <select id="jenis-soal" class="retro-select w-full p-2">
+                        <option value="pilihan ganda">Pilihan Ganda</option>
+                        <option value="uraian">Uraian</option>
+                    </select>
+                </div>
+            </div>
+            <div id="admin-panel-error" class="text-red-500 mb-4 text-center font-semibold"></div>
+            <button id="generate-soal" class="retro-button w-full bg-[#268BD2] py-3 text-lg mb-6">Generate Soal dengan AI</button>
+            
+            <div id="generation-status" class="text-center font-semibold my-4"></div>
+            <div id="loader-generate" class="hidden flex justify-center items-center h-40"><div class="loader"></div></div>
+
+            <div id="soal-preview" class="hidden mt-6">
+                 <h3 class="font-bungee text-xl text-center text-[#073642] mb-4">Pratinjau Soal</h3>
+                 <p class="text-center font-semibold mb-4 text-green-600">Soal berhasil dibuat. Silakan tinjau di bawah ini sebelum mempublikasikannya.</p>
+                 <div id="soal-list-preview" class="space-y-4 max-h-96 overflow-y-auto p-4 bg-[#FDF6E3] border-2 border-[#073642]"></div>
+                 <p id="publish-status" class="text-center font-semibold my-4"></p>
+                 <button id="publish-btn" class="retro-button w-full bg-[#859900] py-3 text-lg mt-4">Publish ke Spreadsheet</button>
+            </div>
+            <button class="back-button retro-button w-full bg-[#DC322F] px-6 py-3 mt-6">Kembali ke Menu Utama</button>
+        </div>
+
+
+        <!-- Exam Screen -->
+        <div id="exam-screen" class="hidden retro-card p-4 md:p-8">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-4 border-b-4 border-[#073642] pb-4">
+                <div class="text-center md:text-left mb-4 md:mb-0">
+                    <h2 id="exam-title" class="font-bungee text-2xl text-[#D33682]">Ujian Koding & AI</h2>
+                    <p id="student-info" class="font-semibold"></p>
+                </div>
+                <div class="text-center rounded-lg bg-[#FDF6E3] border-4 border-[#073642] px-4 py-2">
+                     <p class="font-bold text-lg">SKOR</p>
+                     <p id="score" class="font-bungee text-4xl text-[#268BD2]">0</p>
+                </div>
+            </div>
+
+            <div id="question-container">
+                <p id="question-number" class="font-bold text-lg mb-2"></p>
+                <p id="question-text" class="text-lg mb-4"></p>
+                <div id="options-container" class="space-y-3"></div>
+            </div>
+            
+            <div class="mt-8 flex justify-between items-center">
+                <p id="progress-text" class="font-semibold"></p>
+                <button id="next-button" class="retro-button px-8 py-3">Selanjutnya</button>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="hidden retro-card p-6 md:p-10 text-center">
+            <h2 class="font-bungee text-3xl md:text-4xl text-[#268BD2] mb-4">Ujian Selesai!</h2>
+            <p class="text-xl mb-2">Skor Akhir Anda:</p>
+            <p id="final-score" class="font-bungee text-7xl text-[#D33682] mb-8">100</p>
+            <p id="result-message" class="text-lg font-semibold mb-6"></p>
+            <p id="save-status" class="text-lg font-semibold mb-6"></p>
+            <button class="back-button retro-button w-full sm:w-auto bg-[#859900] px-8 py-3 text-lg">Selesai</button>
+        </div>
+
+    </div>
+
+    <script type="module">
+        // ===================================================================================
+        // KONFIGURASI APLIKASI
+        // ===================================================================================
+        let SCRIPT_URL = '';
+        const ADMIN_PASSWORD = "Psalm42*";
+        const CONFIG_PASSWORD = "Psalm42*";
+
+        let config = {};
+
+        const defaultConfig = {
+            schoolName: "Ujian Online",
+            schoolSubtitle: "SiLungguh (\"Dengan SiLungguh, Ujian Jadi Lebih Mudah.\")",
+            schoolLogo: "",
+            teacherName: "Bapak Ari Wijaya",
+            mapel: "Koding dan Kecerdasan Artifisial",
+            kelas: "X SMK",
+            jumlahSoal: 50,
+            jumlahJawaban: 4,
+            poin: 2,
+            scriptUrl: "",
+            apiKey: ""
+        };
+
+        const codeGsContent = `
+function doPost(e) {
+  try {
+    const body = JSON.parse(e.postData.contents);
+    const action = body.action;
+    let responseData;
+
+    switch(action) {
+      case 'getInitialData':
+        responseData = getInitialData();
+        break;
+      case 'publishExam':
+        responseData = publishExam(body.data);
+        break;
+      case 'saveResult':
+        responseData = saveResult(body.data);
+        break;
+      default:
+        throw new Error("Action not recognized.");
+    }
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: true, data: responseData }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (error) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: false, message: error.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function getInitialData() {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const studentSheet = ss.getSheetByName("DaftarSiswa");
+    const studentData = studentSheet.getDataRange().getValues();
+    studentData.shift(); // Remove header
+    const students = studentData.map(row => ({ nama: row[0], kelas: row[1] }));
+
+    const examSheet = ss.getSheetByName("DaftarUjian");
+    const examData = examSheet.getDataRange().getValues();
+    examData.shift(); // Remove header
+    const exams = examData.map(row => ({
+      id: row[0], mapel: row[1], kelas: row[2], publishedAt: row[3], questions: row[4]
+    }));
+    return { students, exams };
+}
+
+function publishExam(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName("DaftarUjian");
+  const newRow = ["UJIAN_" + new Date().getTime(), data.mapel, data.kelas, new Date(), JSON.stringify(data.questions)];
+  sheet.appendRow(newRow);
+  return "Exam published successfully.";
+}
+
+function saveResult(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName("HasilUjian");
+  const newRow = [new Date(), data.name, data.aClass, data.examId, data.score];
+  sheet.appendRow(newRow);
+  return "Result saved successfully.";
+}
+        `.trim();
+
+        // ===================================================================================
+        // ELEMEN DOM
+        // ===================================================================================
+        const screens = {
+            studentLogin: document.getElementById('student-login-screen'),
+            adminLogin: document.getElementById('admin-login-screen'),
+            adminPanel: document.getElementById('admin-panel'),
+            exam: document.getElementById('exam-screen'),
+            result: document.getElementById('result-screen'),
+            config: document.getElementById('config-screen'),
+        };
+
+        const studentLoginForm = {
+            loader: document.getElementById('student-loader'),
+            container: document.getElementById('student-form-container'),
+            classSelect: document.getElementById('student-class-select'),
+            nameSelect: document.getElementById('student-name-select'),
+            examSelect: document.getElementById('exam-list'),
+            startBtn: document.getElementById('start-exam'),
+            errorMsg: document.getElementById('student-login-error')
+        };
+        
+        const adminLoginForm = {
+            passwordInput: document.getElementById('admin-password'),
+            loginBtn: document.getElementById('admin-login-btn'),
+            errorMsg: document.getElementById('admin-login-error')
+        };
+
+        const configScreenElements = {
+            login: document.getElementById('config-login'),
+            passwordInput: document.getElementById('config-password'),
+            loginBtn: document.getElementById('config-login-btn'),
+            errorMsg: document.getElementById('config-login-error'),
+            form: document.getElementById('config-form'),
+            schoolName: document.getElementById('config-school-name'),
+            schoolLogo: document.getElementById('config-school-logo'),
+            teacherName: document.getElementById('config-teacher-name'),
+            apiKey: document.getElementById('config-api-key'),
+            mapel: document.getElementById('config-mapel'),
+            kelas: document.getElementById('config-kelas'),
+            jumlahSoal: document.getElementById('config-jumlah-soal'),
+            jumlahJawaban: document.getElementById('config-jumlah-jawaban'),
+            poin: document.getElementById('config-poin'),
+            codeGs: document.getElementById('config-code-gs'),
+            copyCodeBtn: document.getElementById('copy-code-btn'),
+            scriptUrl: document.getElementById('config-script-url'),
+            saveBtn: document.getElementById('save-config-btn'),
+            saveStatus: document.getElementById('config-save-status')
+        };
+
+        const adminPanelForm = {
+            mapel: document.getElementById('mapel'),
+            kelas: document.getElementById('kelas'),
+            poin: document.getElementById('poin'),
+            jumlahSoal: document.getElementById('jumlah-soal'),
+            jenisSoal: document.getElementById('jenis-soal'),
+            generateBtn: document.getElementById('generate-soal'),
+            loader: document.getElementById('loader-generate'),
+            status: document.getElementById('generation-status'),
+            previewContainer: document.getElementById('soal-preview'),
+            previewList: document.getElementById('soal-list-preview'),
+            publishBtn: document.getElementById('publish-btn'),
+            publishStatus: document.getElementById('publish-status'),
+            errorMsg: document.getElementById('admin-panel-error')
+        };
+
+        const examElements = {
+            title: document.getElementById('exam-title'),
+            studentInfo: document.getElementById('student-info'),
+            score: document.getElementById('score'),
+            questionNumber: document.getElementById('question-number'),
+            questionText: document.getElementById('question-text'),
+            optionsContainer: document.getElementById('options-container'),
+            nextButton: document.getElementById('next-button'),
+            progressText: document.getElementById('progress-text'),
+        };
+
+        const resultElements = {
+            finalScore: document.getElementById('final-score'),
+            message: document.getElementById('result-message'),
+            saveStatus: document.getElementById('save-status')
+        };
+        
+        // Tombol Navigasi
+        document.getElementById('show-admin-login').addEventListener('click', () => switchScreen('adminLogin'));
+        document.getElementById('show-config').addEventListener('click', () => switchScreen('config'));
+        document.querySelectorAll('.back-button').forEach(btn => btn.addEventListener('click', () => switchScreen('studentLogin')));
+
+        // ===================================================================================
+        // STATE APLIKASI
+        // ===================================================================================
+        let studentsData = [];
+        let examsData = [];
+        let currentExam = {
+            questions: [],
+            currentQuestionIndex: 0,
+            score: 0,
+            poinPerSoal: 2,
+            studentName: '',
+            studentClass: '',
+            examId: ''
+        };
+        let generatedExamData = null;
+
+        // ===================================================================================
+        // FUNGSI UTAMA & KONFIGURASI
+        // ===================================================================================
+        function loadConfig() {
+            const savedConfig = localStorage.getItem('examConfig');
+            config = savedConfig ? JSON.parse(savedConfig) : { ...defaultConfig };
+            applyConfig();
+        }
+
+        function saveConfig() {
+            localStorage.setItem('examConfig', JSON.stringify(config));
+            applyConfig();
+            configScreenElements.saveStatus.textContent = "Konfigurasi berhasil disimpan!";
+            configScreenElements.saveStatus.style.color = "#859900";
+            setTimeout(() => { configScreenElements.saveStatus.textContent = ""; }, 3000);
+        }
+
+        function applyConfig() {
+            document.getElementById('school-name').textContent = config.schoolName;
+            document.getElementById('school-subtitle').textContent = config.schoolSubtitle || "";
+            document.getElementById('teacher-name').textContent = `Guru Mapel: ${config.teacherName}`;
+            const logoEl = document.getElementById('school-logo');
+            if (config.schoolLogo) {
+                logoEl.src = config.schoolLogo;
+                logoEl.classList.remove('hidden');
+            } else {
+                logoEl.classList.add('hidden');
+            }
+            
+            adminPanelForm.mapel.value = config.mapel;
+            adminPanelForm.kelas.value = config.kelas;
+            adminPanelForm.jumlahSoal.value = config.jumlahSoal;
+            adminPanelForm.poin.value = config.poin;
+
+            configScreenElements.schoolName.value = config.schoolName;
+            configScreenElements.schoolLogo.value = config.schoolLogo;
+            configScreenElements.teacherName.value = config.teacherName;
+            configScreenElements.apiKey.value = config.apiKey;
+            configScreenElements.mapel.value = config.mapel;
+            configScreenElements.kelas.value = config.kelas;
+            configScreenElements.jumlahSoal.value = config.jumlahSoal;
+            configScreenElements.jumlahJawaban.value = config.jumlahJawaban;
+            configScreenElements.poin.value = config.poin;
+            configScreenElements.scriptUrl.value = config.scriptUrl;
+
+            SCRIPT_URL = config.scriptUrl;
+        }
+
+
+        function switchScreen(screenName) {
+            Object.values(screens).forEach(screen => screen.classList.add('hidden'));
+            if (screens[screenName]) {
+                screens[screenName].classList.remove('hidden');
+            }
+            if (screenName === 'studentLogin') {
+                initStudentLogin();
+                resetAdminPanel();
+            }
+        }
+
+        function initConfigScreen() {
+            configScreenElements.codeGs.value = codeGsContent;
+            
+            configScreenElements.loginBtn.addEventListener('click', () => {
+                if (configScreenElements.passwordInput.value === CONFIG_PASSWORD) {
+                    configScreenElements.login.classList.add('hidden');
+                    configScreenElements.form.classList.remove('hidden');
+                    configScreenElements.errorMsg.textContent = '';
+                } else {
+                    configScreenElements.errorMsg.textContent = 'Password salah!';
+                }
+            });
+
+            configScreenElements.saveBtn.addEventListener('click', () => {
+                config.schoolName = configScreenElements.schoolName.value;
+                config.schoolLogo = configScreenElements.schoolLogo.value;
+                config.teacherName = configScreenElements.teacherName.value;
+                config.apiKey = configScreenElements.apiKey.value;
+                config.mapel = configScreenElements.mapel.value;
+                config.kelas = configScreenElements.kelas.value;
+                config.jumlahSoal = parseInt(configScreenElements.jumlahSoal.value);
+                config.jumlahJawaban = parseInt(configScreenElements.jumlahJawaban.value);
+                config.poin = parseInt(configScreenElements.poin.value);
+                config.scriptUrl = configScreenElements.scriptUrl.value;
+                saveConfig();
+            });
+
+            configScreenElements.copyCodeBtn.addEventListener('click', () => {
+                navigator.clipboard.writeText(codeGsContent).then(() => {
+                    configScreenElements.copyCodeBtn.textContent = 'Disalin!';
+                    setTimeout(() => { configScreenElements.copyCodeBtn.textContent = 'Salin'; }, 2000);
+                });
+            });
+        }
+
+
+        // ----------------- FUNGSI ADMIN -----------------
+        function initAdminLogin() {
+            adminLoginForm.loginBtn.addEventListener('click', () => {
+                if (adminLoginForm.passwordInput.value === ADMIN_PASSWORD) {
+                    switchScreen('adminPanel');
+                    adminLoginForm.passwordInput.value = '';
+                    adminLoginForm.errorMsg.textContent = '';
+                } else {
+                    adminLoginForm.errorMsg.textContent = 'Password salah!';
+                }
+            });
+        }
+        
+        function initAdminPanel() {
+            adminPanelForm.generateBtn.addEventListener('click', handleGenerateSoal);
+            adminPanelForm.publishBtn.addEventListener('click', handlePublishExam);
+        }
+
+        async function handleGenerateSoal() {
+            adminPanelForm.errorMsg.textContent = '';
+            if (!config.apiKey) {
+                adminPanelForm.errorMsg.textContent = "Gemini API Key belum diatur di menu Konfigurasi.";
+                return;
+            }
+            const { mapel, kelas, poin, jumlahSoal, jenisSoal } = adminPanelForm;
+            if (!mapel.value || !kelas.value || !poin.value || !jumlahSoal.value) {
+                adminPanelForm.errorMsg.textContent = "Semua field harus diisi!";
+                return;
+            }
+
+            adminPanelForm.generateBtn.disabled = true;
+            adminPanelForm.status.textContent = "Sedang menghubungi AI untuk membuat soal...";
+            adminPanelForm.loader.classList.remove('hidden');
+            adminPanelForm.previewContainer.classList.add('hidden');
+
+            try {
+                const prompt = `Buatkan ${jumlahSoal.value} soal ujian dalam format JSON tentang "${mapel.value}" untuk siswa kelas ${kelas.value}. Jenis soal adalah "${jenisSoal.value}". Setiap soal harus memiliki properti "soal", dan jika pilihan ganda, tambahkan properti "pilihan" (array berisi ${config.jumlahJawaban} string opsi) dan "jawaban" (string yang berisi jawaban benar). Jika uraian, jangan sertakan "pilihan" dan "jawaban". Pastikan JSON valid.`;
+                
+                const apiKey = config.apiKey; 
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                
+                const payload = {
+                    contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: {
+                      responseMimeType: "application/json",
+                    }
+                };
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API request failed with status ${response.status}`);
+                }
+                
+                const result = await response.json();
+                const jsonText = result.candidates[0].content.parts[0].text;
+                const questions = JSON.parse(jsonText);
+
+                generatedExamData = {
+                    mapel: mapel.value,
+                    kelas: kelas.value,
+                    poinPerSoal: parseInt(poin.value),
+                    questions: questions
+                };
+                
+                displaySoalPreview(questions);
+
+            } catch (error) {
+                console.error("Error generating exam:", error);
+                adminPanelForm.status.textContent = "Gagal membuat soal. Cek konsol untuk detail.";
+                adminPanelForm.errorMsg.textContent = "Terjadi kesalahan saat generate soal. Coba lagi.";
+            } finally {
+                adminPanelForm.generateBtn.disabled = false;
+                adminPanelForm.loader.classList.add('hidden');
+            }
+        }
+        
+        function displaySoalPreview(questions) {
+            adminPanelForm.status.textContent = "";
+            adminPanelForm.previewContainer.classList.remove('hidden');
+            adminPanelForm.previewList.innerHTML = '';
+            
+            questions.forEach((q, index) => {
+                const div = document.createElement('div');
+                div.className = 'p-2 border-b-2 border-gray-300';
+                let content = `<p class="font-bold">${index + 1}. ${q.soal}</p>`;
+                if (q.pilihan) {
+                    content += `<ul class="list-disc pl-5">`;
+                    q.pilihan.forEach(opt => {
+                        const isCorrect = opt === q.jawaban;
+                        content += `<li class="${isCorrect ? 'text-green-700 font-bold' : ''}">${opt} ${isCorrect ? '(Jawaban Benar)' : ''}</li>`;
+                    });
+                    content += `</ul>`;
+                }
+                div.innerHTML = content;
+                adminPanelForm.previewList.appendChild(div);
+            });
+            adminPanelForm.publishStatus.textContent = '';
+            adminPanelForm.publishBtn.disabled = false;
+        }
+
+        async function handlePublishExam() {
+            if (!generatedExamData) {
+                adminPanelForm.publishStatus.innerText = "Tidak ada data soal untuk dipublish.";
+                adminPanelForm.publishStatus.style.color = "#DC322F";
+                return;
+            }
+
+            adminPanelForm.publishBtn.disabled = true;
+            adminPanelForm.publishStatus.innerText = "Menyimpan ke Spreadsheet...";
+            adminPanelForm.publishStatus.style.color = "#657B83";
+            
+            try {
+                if (!SCRIPT_URL || !SCRIPT_URL.startsWith('https://')) {
+                    throw new Error("URL Google Apps Script belum diatur di menu Konfigurasi.");
+                }
+                
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'publishExam', data: generatedExamData })
+                });
+
+                if (!response.ok) {
+                   throw new Error(`Network response was not ok: ${response.statusText}`);
+                }
+
+                const responseText = await response.text();
+                if (!responseText) {
+                    throw new Error("Server memberikan respons kosong.");
+                }
+                try {
+                    const result = JSON.parse(responseText);
+                    if (result.success) {
+                        adminPanelForm.publishStatus.innerText = `Ujian berhasil dipublish!`;
+                        adminPanelForm.publishStatus.style.color = "#859900";
+                    } else {
+                        throw new Error(result.message || "Unknown error from script.");
+                    }
+                } catch (e) {
+                    console.error("Gagal mem-parse respons JSON dari skrip. Respons mentah:", responseText);
+                    throw new Error("Server memberikan respons yang tidak valid.");
+                }
+            } catch (error) {
+                console.error("Error publishing:", error);
+                adminPanelForm.publishStatus.innerText = `Gagal publish: ${error.message}`;
+                adminPanelForm.publishStatus.style.color = "#DC322F";
+                adminPanelForm.publishBtn.disabled = false;
+            }
+        }
+
+        function resetAdminPanel() {
+            adminPanelForm.status.textContent = '';
+            adminPanelForm.previewContainer.classList.add('hidden');
+            adminPanelForm.publishStatus.textContent = '';
+            adminPanelForm.errorMsg.textContent = '';
+            generatedExamData = null;
+        }
+
+        // ----------------- FUNGSI SISWA -----------------
+        async function initStudentLogin() {
+            studentLoginForm.loader.classList.remove('hidden');
+            studentLoginForm.container.classList.add('hidden'); // Hide form while loading
+            studentLoginForm.errorMsg.textContent = '';
+            
+            if (!SCRIPT_URL || !SCRIPT_URL.startsWith('https://')) {
+                studentLoginForm.errorMsg.textContent = "Aplikasi belum dikonfigurasi. Klik 'Login Konfigurasi' untuk setup.";
+                studentLoginForm.loader.classList.add('hidden');
+                return;
+            }
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'getInitialData' })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Gagal memuat data: ${response.statusText}`);
+                }
+                
+                const responseText = await response.text();
+                if (!responseText) {
+                    throw new Error("Server memberikan respons kosong. Pastikan skrip sudah di-deploy ulang dan spreadsheet tidak kosong.");
+                }
+                try {
+                    const result = JSON.parse(responseText);
+                    if (result.success) {
+                        const { students, exams } = result.data;
+                        studentsData = students;
+                        examsData = exams;
+                        populateClassDropdown();
+                        populateExamDropdown();
+                        studentLoginForm.container.classList.remove('hidden'); // Show form after loading
+                    } else {
+                        throw new Error(result.message || "Gagal memuat data dari Spreadsheet.");
+                    }
+                } catch(e) {
+                    console.error("Gagal mem-parse respons JSON dari skrip. Respons mentah:", responseText);
+                    throw new Error("Server memberikan respons yang tidak valid. Cek konsol untuk detail.");
+                }
+
+            } catch (error) {
+                console.error("Error fetching initial data:", error);
+                studentLoginForm.errorMsg.textContent = `Error: ${error.message}`;
+            } finally {
+                studentLoginForm.loader.classList.add('hidden');
+            }
+        }
+
+        function populateClassDropdown() {
+            const classes = [...new Set(studentsData.map(student => student.kelas))].sort();
+            studentLoginForm.classSelect.innerHTML = '<option value="">-- Pilih Kelas --</option>';
+            classes.forEach(className => {
+                if (className) { 
+                    const option = document.createElement('option');
+                    option.value = className;
+                    option.textContent = className;
+                    studentLoginForm.classSelect.appendChild(option);
+                }
+            });
+            studentLoginForm.classSelect.addEventListener('change', (e) => {
+                const selectedClass = e.target.value;
+                populateNameDropdown(selectedClass);
+            });
+        }
+
+        function populateNameDropdown(selectedClass) {
+            const nameSelect = studentLoginForm.nameSelect;
+            nameSelect.innerHTML = '<option value="">-- Pilih Nama --</option>';
+            
+            if (selectedClass) {
+                const studentsInClass = studentsData.filter(student => student.kelas === selectedClass);
+                studentsInClass.forEach(student => {
+                    const option = document.createElement('option');
+                    option.value = student.nama;
+                    option.textContent = student.nama;
+                    nameSelect.appendChild(option);
+                });
+                nameSelect.disabled = false;
+            } else {
+                nameSelect.disabled = true;
+            }
+        }
+        
+        function populateExamDropdown() {
+             studentLoginForm.examSelect.innerHTML = '<option value="">-- Pilih Ujian --</option>';
+             examsData.forEach(exam => {
+                const option = document.createElement('option');
+                option.value = exam.id;
+                option.textContent = `${exam.mapel} - (${exam.kelas})`;
+                studentLoginForm.examSelect.appendChild(option);
+             });
+        }
+        
+        function initStartExam() {
+            studentLoginForm.startBtn.addEventListener('click', () => {
+                const studentName = studentLoginForm.nameSelect.value;
+                const studentClass = studentLoginForm.classSelect.value;
+                const examId = studentLoginForm.examSelect.value;
+
+                if (!studentName || !examId || !studentClass) {
+                    studentLoginForm.errorMsg.textContent = 'Silakan pilih kelas, nama, dan ujian terlebih dahulu.';
+                    return;
+                }
+                
+                studentLoginForm.errorMsg.textContent = '';
+                const selectedExam = examsData.find(e => e.id === examId);
+
+                if (selectedExam) {
+                    startExam(selectedExam, studentName, studentClass);
+                } else {
+                    studentLoginForm.errorMsg.textContent = 'Ujian yang dipilih tidak valid.';
+                }
+            });
+        }
+
+        function startExam(examData, studentName, studentClass) {
+            try {
+                const questions = typeof examData.questions === 'string' ? JSON.parse(examData.questions) : examData.questions;
+                const shuffledQuestions = [...questions].sort(() => Math.random() - 0.5);
+
+                currentExam = {
+                    questions: shuffledQuestions,
+                    currentQuestionIndex: 0,
+                    score: 0,
+                    poinPerSoal: examData.poinPerSoal || config.poin,
+                    studentName: studentName,
+                    studentClass: studentClass,
+                    examId: examData.id,
+                    title: `${examData.mapel} - ${examData.kelas}`
+                };
+
+                examElements.title.textContent = currentExam.title;
+                examElements.studentInfo.textContent = `${studentName} (${studentClass})`;
+
+                switchScreen('exam');
+                displayQuestion();
+            } catch (error) {
+                console.error("Gagal memulai ujian, format soal salah:", error);
+                studentLoginForm.errorMsg.textContent = "Gagal memuat soal. Format data ujian mungkin tidak valid.";
+            }
+        }
+        
+        function displayQuestion() {
+            const question = currentExam.questions[currentExam.currentQuestionIndex];
+            if (!question) return;
+
+            examElements.questionNumber.textContent = `Soal ${currentExam.currentQuestionIndex + 1}`;
+            examElements.questionText.textContent = question.soal;
+            examElements.optionsContainer.innerHTML = '';
+            examElements.nextButton.disabled = true;
+
+            const options = question.pilihan ? [...question.pilihan].sort(() => Math.random() - 0.5) : [];
+
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.className = 'block w-full text-left p-3 rounded-lg border-4 border-[#073642] bg-[#EEE8D5] hover:bg-[#cbccc6] transition-colors';
+                button.addEventListener('click', () => handleOptionClick(button, option, question.jawaban));
+                examElements.optionsContainer.appendChild(button);
+            });
+            
+            examElements.score.textContent = currentExam.score;
+            examElements.progressText.textContent = `Soal ${currentExam.currentQuestionIndex + 1} dari ${currentExam.questions.length}`;
+        }
+
+        function handleOptionClick(button, selectedOption, correctAnswer) {
+            examElements.optionsContainer.querySelectorAll('button').forEach(btn => {
+                btn.disabled = true;
+                btn.classList.remove('hover:bg-[#cbccc6]');
+            });
+            button.classList.remove('bg-[#EEE8D5]');
+            button.classList.add('bg-[#268BD2]', 'text-white');
+            if (selectedOption === correctAnswer) {
+                currentExam.score += currentExam.poinPerSoal;
+                examElements.score.textContent = currentExam.score;
+            }
+            examElements.nextButton.disabled = false;
+        }
+
+        function nextQuestion() {
+            currentExam.currentQuestionIndex++;
+            if (currentExam.currentQuestionIndex < currentExam.questions.length) {
+                displayQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        async function showResults() {
+            switchScreen('result');
+            const totalPossibleScore = currentExam.questions.length * currentExam.poinPerSoal;
+            resultElements.finalScore.textContent = currentExam.score;
+            
+            const percentage = (currentExam.score / totalPossibleScore) * 100;
+            if (percentage >= 75) {
+                resultElements.message.textContent = "Luar biasa! Pertahankan prestasimu!";
+            } else if (percentage >= 50) {
+                resultElements.message.textContent = "Bagus, tingkatkan lagi belajarmu!";
+            } else {
+                resultElements.message.textContent = "Jangan menyerah, coba lagi dan terus belajar!";
+            }
+            
+            resultElements.saveStatus.textContent = "Menyimpan hasil...";
+            try {
+                if (!SCRIPT_URL || !SCRIPT_URL.startsWith('https://')) {
+                    throw new Error("URL Script tidak valid.");
+                }
+
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'saveResult',
+                        data: {
+                            name: currentExam.studentName,
+                            aClass: currentExam.studentClass,
+                            examId: currentExam.examId,
+                            score: currentExam.score
+                        }
+                    })
+                });
+
+                const responseText = await response.text();
+                if (!responseText) {
+                    throw new Error("Server memberikan respons kosong saat menyimpan.");
+                }
+                try {
+                    const result = JSON.parse(responseText);
+                    if (result.success) {
+                        resultElements.saveStatus.textContent = "Hasil ujian berhasil disimpan.";
+                        resultElements.saveStatus.style.color = "#859900";
+                    } else {
+                        throw new Error(result.message || "Gagal menyimpan hasil.");
+                    }
+                } catch(e) {
+                    console.error("Gagal mem-parse respons JSON dari skrip. Respons mentah:", responseText);
+                    throw new Error("Server memberikan respons yang tidak valid saat menyimpan.");
+                }
+
+            } catch (error) {
+                console.error("Error saving result:", error);
+                resultElements.saveStatus.textContent = `Gagal menyimpan hasil: ${error.message}`;
+                resultElements.saveStatus.style.color = "#DC322F";
+            }
+        }
+
+        // ===================================================================================
+        // INISIALISASI
+        // ===================================================================================
+        function init() {
+            loadConfig();
+            initConfigScreen();
+            initAdminLogin();
+            initAdminPanel();
+            initStartExam();
+            examElements.nextButton.addEventListener('click', nextQuestion);
+            
+            // Tampilkan layar awal
+            switchScreen('studentLogin');
+        }
+
+        init();
+    </script>
+</body>
+</html>
+
